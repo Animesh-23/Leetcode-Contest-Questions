@@ -2,8 +2,7 @@ const puppeteer = require("puppeteer");
 const cheerio = require("cheerio");
 async function scrape() {
   const browser = await puppeteer.launch({
-    headless: false,
-    defaultViewport: null,
+    headless: "new",
   });
 
   const page = await browser.newPage();
@@ -12,12 +11,13 @@ async function scrape() {
   await page.waitForSelector(".contest-question-list");
   // Get page data
   const data = await page.evaluate(() => {
-    const problems = document.querySelector(".contest-question-list").innerHTML;
-    return problems;
+    const problems = document.querySelectorAll(".contest-question-list li a");
+    return Array.from(problems, (problem) => ({
+      title: problem.textContent,
+      link: "https://leetcode.com" + problem.getAttribute("href"),
+    }));
   });
-  const $ = cheerio.load(data);
-  const problems = $("li a").text();
-  console.log(problems);
+  console.log(data);
   await browser.close();
 }
 
